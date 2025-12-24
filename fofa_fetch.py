@@ -650,68 +650,29 @@ def third_stage():
         except Exception as e:
             print(f"❌ 写回 {target_file} 失败：{e}")
 
-    # 写 IPTV.txt（纯文本格式，包含分类）
+    # 写 IPTV.txt（包含更新时间与分类）
     beijing_now = datetime.now(timezone(timedelta(hours=8))).strftime("%Y-%m-%d %H:%M:%S")
     disclaimer_url = "https://kakaxi-1.asia/LOGO/Disclaimer.mp4"
 
     try:
         with open(IPTV_FILE, "w", encoding="utf-8") as f:
-            # 写入头部信息
-            f.write(f"更新时间：{beijing_now}（北京时间）\n")
-            f.write(f"频道总数：{len(valid_lines)}\n")
-            f.write(f"可用IP数：{len(playable_ips)}\n")
-            f.write(f"免责声明：{disclaimer_url}\n\n")
-            
-            # 写入更新时间分类
+            f.write(f"更新时间: {beijing_now}（北京时间）\n\n")
             f.write("更新时间,#genre#\n")
-            f.write(f"{beijing_now}, {disclaimer_url}\n\n")
+            f.write(f"{beijing_now},{disclaimer_url}\n\n")
+            f.write("其他频道,#genre#\n")
             
-            # 按分类写入频道
             for category, ch_list in CHANNEL_CATEGORIES.items():
-                category_channels = []
-                
+                f.write(f"{category},#genre#\n")
                 for ch in ch_list:
                     for line in valid_lines:
-                        if line.startswith(ch + ","):
-                            category_channels.append(line)
-                
-                if category_channels:
-                    f.write(f"{category},#genre#\n")
-                    
-                    # 按预定义列表顺序写入
-                    for ch in ch_list:
-                        for line in category_channels:
-                            if line.startswith(ch + ","):
-                                f.write(f"{line}\n")
-                    
-                    print(f"📺 {category}: {len(category_channels)} 个频道")
-                    f.write("\n")
-            
-            # 写入其他未分类频道
-            other_channels = []
-            for line in valid_lines:
-                ch_name = line.split(",", 1)[0]
-                found = False
-                for ch_list in CHANNEL_CATEGORIES.values():
-                    if ch_name in ch_list:
-                        found = True
-                        break
-                
-                if not found:
-                    other_channels.append(line)
-            
-            if other_channels:
-                f.write("其他频道,#genre#\n")
-                for line in other_channels:
-                    f.write(f"{line}\n")
-                print(f"📺 其他频道: {len(other_channels)} 个")
-        
+                        name = line.split(",", 1)[0]
+                        if name == ch:
+                            f.write(line + "\n")
+                f.write("\n")
         print(f"🎯 IPTV.txt 生成完成，共 {len(valid_lines)} 条频道")
-        print(f"📁 文件已保存: {IPTV_FILE}")
-        
     except Exception as e:
         print(f"❌ 写 IPTV.txt 失败：{e}")
-
+            
 # ===============================
 # 文件推送
 def push_all_files():
